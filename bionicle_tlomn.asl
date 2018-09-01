@@ -1,26 +1,15 @@
-//Autosplitter for "Bionicle: The Legend of Mata Nui"
-//Coded by benji
-//Bugtested by OndrikB
 state("LEGO Bionicle")
 {
-    uint LevelID : 0x0029B9B0;
-    uint AreaID : 0x0029BDE4;
+    bool HUD1 : "LEGO Bionicle.exe", 0x43AB2C;
+    bool HUD2 : "LEGO Bionicle.exe", 0x34BBC8;
+    uint areaID : "LEGO Bionicle.exe", 0x43AF55;
 }
-
-split
-{
-    if (old.AreaID != 0x3F3F3F3F && current.AreaID != old.AreaID)
-    {
-        print("SPLITTING!");
-    }
-    return old.AreaID != 0x3F3F3F3F && current.AreaID != old.AreaID;
+isLoading {
+    return !current.HUD1 || !current.HUD2;
 }
-
-start
-{
-    if (old.AreaID == 0x3F3F3F3F && current.AreaID != old.AreaID)
-    {
-        print("STARTING!");
-    }
-    return old.AreaID == 0x3F3F3F3F && current.AreaID != old.AreaID;
+split {
+    return current.areaID !=  old.areaID && old.areaID != 0;
+}
+start {
+    return current.areaID != old.areaID && old.areaID == 0;
 }
