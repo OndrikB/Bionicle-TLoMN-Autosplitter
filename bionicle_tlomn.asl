@@ -13,3 +13,7 @@ split {
 start {
     return current.areaID != old.areaID && old.areaID == 0;
 }
+exit
+{
+    timer.IsGameTimePaused = true;
+}
