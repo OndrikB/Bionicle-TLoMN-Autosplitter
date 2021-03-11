@@ -1,3 +1,7 @@
+//This is an autosplitter for Bionicle: The Legend of Mata Nui. 
+//Huge thanks to marczeslaw for finding one of the most important addresses here, and for teaching me how pointerscan works. 
+//More things are planned
+
 state("LEGO Bionicle")
 {
 	//int conv_test : "LEGO Bionicle.exe", 0x3B507C;
@@ -9,6 +13,7 @@ state("LEGO Bionicle")
 	string4 pickupname : "LEGO Bionicle.exe", 0x003032BC, 0x7A0, 0x24, 0x44C, 0x50, 0x3B4; //finally jeez
 	int load_cin : "LEGO Bionicle.exe", 0x0043AA8C, 0x164, 0x2A8, 0x38, 0x184, 0x84;
 	int conv : "LEGO Bionicle.exe", 0x0043AA84, 0x160, 0x4C, 0x4, 0xCC, 0x68C;
+	int paused : "LEGO Bionicle.exe", 0x3032C4;
 }
 
 init
@@ -18,6 +23,7 @@ init
 }
 
 startup {
+	settings.Add("sgTiming", false, "Segmented timing (not allowed in runs)");
 	settings.Add("areaChangeSplit", false, "Split every time you change areas (not recommended)");
 	settings.Add("levelChangeSplit", true, "Split every time the level changes");
 	settings.Add("pickUpSplits", true, "Split every time you pick up an item"); //todo: choice
@@ -215,7 +221,8 @@ startup {
 		vars.L6Items
 	};
 
-//	vars.bossAreas = new string[] {"BOSS", "MUD0", "HYDR", "MDMN", "RKMN", "ICMN", "WDMN", "DRGN"};
+	//vars.bossAreas = new string[] {"BOSS", "MUD0", "HYDR", "MDMN", "RKMN", "ICMN", "WDMN", "DRGN"};
+	vars.bossAreas = new string[] {"ssob", "0dum", "rdyh", "nmdm", "nmkr", "nmci", "nmdw", "ngrd"};
 }
 
 
@@ -229,17 +236,16 @@ update
 
 isLoading {
 	//return (current.Load == 1)  || (current.conv_test == 1) || (vars.area == "frnt");
-	if (!settings["brushmode"]) {
-		if (current.nareaID == "????") {
-			return true;
-		}
-		return ((current.load_cin == 1 && current.conv != 1) || (current.Load == 1)  || (current.nareaID == "tnrf") || (vars.area == "frnt"));
+	if (current.nareaID == "????") {
+		return true;
 	}
-	//return (current.Load == 1)  || (current.nareaID == "tnrf") || (current.nareaID == "????");
-	//TODO: add boss rush mode
-/*	if (settings["brushmode"]) {
-		return !(vars.bossAreas.Contains(current.nareaID);
-	}*/
+	if ((settings["sgTiming"]) && (current.paused == 1)) {
+		return true;
+	}
+	if (settings["brushmode"]) {
+		return (Array.IndexOf(vars.bossAreas, current.nareaID) == -1);
+	}
+	return ((current.load_cin == 1 && current.conv != 1) || (current.Load == 1)  || (current.nareaID == "tnrf") || (vars.area == "frnt"));
 }
 
 
