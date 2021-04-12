@@ -10,6 +10,4 @@ This script can now split when:
 
 -You change levels (also toggleable!)
 
-
-
--Boss Rush mode is planned, currently does nothing
+-Boss Rush mode is activated (in that case, time only runs forward in the boss areas)
