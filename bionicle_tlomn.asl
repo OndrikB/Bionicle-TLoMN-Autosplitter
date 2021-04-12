@@ -10,7 +10,7 @@ state("LEGO Bionicle")
 	string4 nareaID : "LEGO Bionicle.exe", 0x347490;
 	int Load : "LEGO Bionicle.exe", 0x309AE8; //actually with the fade to black
 	byte level : "LEGO Bionicle.exe", 0x34748C;
-	string4 pickupname : "LEGO Bionicle.exe", 0x003032BC, 0x7A0, 0x24, 0x44C, 0x50, 0x3B4; //finally jeez
+	string4 pickupname : "LEGO Bionicle.exe", 0x00425B50, 0x3BC, 0x634, 0xF4, 0x7EC, 0x3B4; //finally jeez - updated version
 	int load_cin : "LEGO Bionicle.exe", 0x0043AA8C, 0x164, 0x2A8, 0x38, 0x184, 0x84;
 	int conv : "LEGO Bionicle.exe", 0x0043AA84, 0x160, 0x4C, 0x4, 0xCC, 0x68C;
 	int paused : "LEGO Bionicle.exe", 0x3032C4;
