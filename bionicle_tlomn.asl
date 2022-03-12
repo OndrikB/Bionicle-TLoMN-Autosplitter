@@ -1,5 +1,5 @@
-//This is an autosplitter for Bionicle: The Legend of Mata Nui. 
-//Huge thanks to marczeslaw for finding one of the most important addresses here, and for teaching me how pointerscan works. 
+//This is an autosplitter for Bionicle: The Legend of Mata Nui.
+//Huge thanks to marczeslaw for finding one of the most important addresses here, and for teaching me how pointerscan works.
 //More things are planned
 
 state("LEGO Bionicle")
@@ -10,7 +10,9 @@ state("LEGO Bionicle")
 	string4 nareaID : "LEGO Bionicle.exe", 0x347490;
 	int Load : "LEGO Bionicle.exe", 0x309AE8; //actually with the fade to black
 	byte level : "LEGO Bionicle.exe", 0x34748C;
-	string4 pickupname : "LEGO Bionicle.exe", 0x00425B50, 0x3BC, 0x634, 0xF4, 0x7EC, 0x3B4; //finally jeez - updated version
+	//string4 pickupname : "LEGO Bionicle.exe", 0x003032BC, 0x7A0, 0x24, 0x44C, 0x50, 0x3B4; //finally jeez
+	//I don't know why, I don't want to know why, I shouldn't have to wonder why, but for some reason this points to 3b4 in rebuilt and I have to find a new address
+	//string4 pickupname : "LEGO Bionicle.exe", 0x00425B50, 0x3BC, 0x634, 0xF4, 0x7EC, 0x3B4;
 	int load_cin : "LEGO Bionicle.exe", 0x0043AA8C, 0x164, 0x2A8, 0x38, 0x184, 0x84;
 	int conv : "LEGO Bionicle.exe", 0x0043AA84, 0x160, 0x4C, 0x4, 0xCC, 0x68C;
 	int paused : "LEGO Bionicle.exe", 0x3032C4;
@@ -19,17 +21,17 @@ state("LEGO Bionicle")
 init
 {
     timer.IsGameTimePaused = false;
-    vars.area = "";
 }
 
 startup {
 	settings.Add("sgTiming", false, "Segmented timing (not allowed in runs)");
 	settings.Add("areaChangeSplit", false, "Split every time you change areas (not recommended)");
 	settings.Add("levelChangeSplit", true, "Split every time the level changes");
-	settings.Add("pickUpSplits", true, "Split every time you pick up an item"); //todo: choice
-	settings.Add("brushmode", false, "Boss rush mode"); //TODO: implement LULW (difficult due to boss health handling)
+	//settings.Add("menuPause", true, "Pause the timer in Front End");
+	settings.Add("pickUpSplits", true, "Split every time you pick up an item"); //todo: choice  -DONE, but broken :(
+	settings.Add("brushmode", false, "Boss rush mode"); //TODO: implement LULW (difficult due to boss health handling)  -DONE
 	//LEV1 splits
-	settings.Add("l1Splits", false, "Level-1 Onua","pickUpSplits");
+	/*settings.Add("l1Splits", false, "Level-1 Onua","pickUpSplits");
 	settings.Add("hok1Split", true, "Split on picking up the grapple","l1Splits");
 	settings.Add("ruruSplit", true, "Split on picking up the Ruru","l1Splits");
 	settings.Add("hunaSplit", true, "Split on picking up the Huna","l1Splits");
@@ -219,23 +221,38 @@ startup {
 		vars.L4Items,
 		vars.L5Items,
 		vars.L6Items
-	};
+	};*/
+	settings.Add("stoneSplits", false, "Split on picking up the Makoki stone");
+	settings.Add("actionSplits", false, "Split on special action");
+	settings.Add("cl1Split", false, "Split on bridge extension in CLF1","actionSplits");
+	settings.Add("tdaSplit", false, "Split on trapdoor trigger in BUGS","actionSplits");
 
+	settings.Add("sCase", true, "Special pickup handling");
+	settings.Add("kSplit", true, "Split on leaving MWAT (substitute for Kaukau)","sCase");
+	settings.Add("gSplit", true, "Split on leaving GLY3 (substitute for Glyph)","sCase");
 	//vars.bossAreas = new string[] {"BOSS", "MUD0", "HYDR", "MDMN", "RKMN", "ICMN", "WDMN", "DRGN"};
 	vars.bossAreas = new string[] {"ssob", "0dum", "rdyh", "nmdm", "nmkr", "nmci", "nmdw", "ngrd"};
+	vars.aSplits = new string[] {"tnrf", "????"};
 }
 
 
 update
 {
 	if (current.dfarea.Length != 0) {
-		vars.area = current.dfarea.Substring(current.dfarea.Length - 8, 4);
+		vars.cArea = current.dfarea.Substring((current.dfarea.Length - 8), 4);
 	}
+	if (old.dfarea.Length != 0) {
+		vars.oArea = old.dfarea.Substring((old.dfarea.Length - 8), 4);
+	}
+	//vars.area = "";
 }
 
 
 isLoading {
 	//return (current.Load == 1)  || (current.conv_test == 1) || (vars.area == "frnt");
+	/*if (!settings["menuPause"] && (vars.cArea == "frnt")) {
+		return false;
+	}*/
 	if (current.nareaID == "????") {
 		return true;
 	}
@@ -245,20 +262,51 @@ isLoading {
 	if (settings["brushmode"]) {
 		return (Array.IndexOf(vars.bossAreas, current.nareaID) == -1);
 	}
-	return ((current.load_cin == 1 && current.conv != 1) || (current.Load == 1)  || (current.nareaID == "tnrf") || (vars.area == "frnt"));
+	if (settings["menuPause"]) {
+		return ((current.nareaID == "tnrf") || (vars.cArea == "frnt"));
+	}
+	
+	return ((current.load_cin == 1 && current.conv != 1) || (current.Load == 1));
 }
 
 
 split {
-	if ((settings["areaChangeSplit"]) && (current.nareaID != old.nareaID) && (old.nareaID != "tnrf") && (vars.area != "frnt")) {
+	if ((settings["levelChangeSplit"]) && (current.level != old.level) && (old.level != 0) && (vars.cArea != "frnt")) {
 		return true;
 	}
-	if ((settings["pickUpSplits"]) && (current.pickup == 1) && (old.pickup == 0)) {
-		return settings[vars.AllItems[current.level-1][current.pickupname]];
-	}
-	if ((settings["levelChangeSplit"]) && (current.level != old.level) && (old.level != 0) && (vars.area != "frnt")) {
+	if ((settings["areaChangeSplit"]) && (current.nareaID != old.nareaID) && (current.nareaID != "frnt") && (old.nareaID != "frnt") && (old.nareaID != "????")) {
 		return true;
 	}
+
+	if ((!settings["areaChangeSplit"]) && (current.nareaID != old.nareaID))
+	{
+		return (((old.nareaID == "tawm") && (settings["kSplit"])) || ((old.nareaID == "3ylg") && (current.level == 2) && (settings["gSplit"])));
+	}
+
+	if ((current.pickup == 1) && (old.pickup == 0)) {
+		//vars.appItems = vars.AllItems[(current.level)-1];
+		//vars.currSet = vars.appItems[current.pickupname];
+		if (Array.IndexOf(vars.bossAreas, current.nareaID) != -1)
+		{
+			return (settings["stoneSplits"]);
+		}
+		else if (current.nareaID == "1flc")
+		{
+			return (settings["cl1Split"]);
+		}
+		else if (current.nareaID == "sgub")
+		{
+			return settings["tdaSplit"];
+		}
+		else if (Array.IndexOf(vars.bossAreas, current.nareaID) == -1)
+		{
+			return (settings["pickUpSplits"]);
+		}
+
+	}
+
+
+
 }
 
 start {
